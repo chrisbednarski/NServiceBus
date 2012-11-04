@@ -11,6 +11,7 @@
     using System.Text;
     using System.Threading;
     using Utils;
+    using Receiving;
 
     public class HttpChannelReceiver:IChannelReceiver
     {
@@ -62,7 +63,7 @@
 
                 Logger.Debug("Http request processing complete.");
             }
-            catch (HttpChannelException ex)
+            catch (ChannelException ex)
             {
                 CloseResponseAndWarn(ctx, ex.Message, ex.StatusCode);
             }

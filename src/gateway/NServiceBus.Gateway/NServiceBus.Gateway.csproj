@@ -132,7 +132,7 @@
     <Compile Include="Receiving\ConventionBasedChannelManager.cs" />
     <Compile Include="Receiving\IdempotentChannelReceiver.cs" />
     <Compile Include="Receiving\IReceiveMessagesFromSites.cs" />
-    <Compile Include="Channels\Http\HttpChannelException.cs" />
+    <Compile Include="Receiving\ChannelException.cs" />
     <Compile Include="Channels\Http\HttpChannelSender.cs" />
     <Compile Include="Channels\Http\HttpHeaders.cs" />
     <Compile Include="Channels\IChannelSender.cs" />
