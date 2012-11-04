@@ -61,7 +61,7 @@
 
         static TransactionScope DefaultTransactionScope()
         {
-            return new TransactionScope(TransactionScopeOption.Required,
+            return new TransactionScope(TransactionScopeOption.RequiresNew,
                                         new TransactionOptions
                                             {
                                                 IsolationLevel = IsolationLevel.ReadCommitted,
