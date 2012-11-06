@@ -6,48 +6,43 @@
 
     public class InMemoryDeduplication : IDeduplicateMessages
     {
-        public void InsertDataBusProperty(string clientId, string key, string value)
+        public bool DeduplicateMessage(string clientId, DateTime timeReceived)
         {
             lock (persistence)
             {
                 var item = persistence.SingleOrDefault(m => m.Id == clientId);
-                if (item == null)
-                    item = new MessageData(clientId);
-
-                item.DataBus[key] = value;
-                persistence.Add(item);
-            }
-        }
-
-        public bool DeduplicateMessage(string clientId, DateTime timeReceived, out IDictionary<string, string> databusProperties)
-        {
-            databusProperties = null;
-            lock (persistence)
-            {
-                var item = persistence.SingleOrDefault(m => m.Id == clientId);
-                if (item == null)
-                    item = new MessageData(clientId);
-                else if (item.Deduplicated)
+                if (item != null)
                     return false;
 
-                item.Received = timeReceived;
-                item.Deduplicated = true;
-
-                databusProperties = item.DataBus;
+                return persistence.Add(new MessageData(clientId, timeReceived));
             }
-            return true;
         }
 
         private class MessageData
         {
-            public MessageData(string id) { Id = id; }
+            public MessageData(string id, DateTime received)
+            {
+                Id = id;
+                Received = received;
+            }
 
             public string Id;
-            public readonly IDictionary<string, string> DataBus = new Dictionary<string, string>();
-            public bool Deduplicated;
             public DateTime Received;
         }
 
-        readonly ISet<MessageData> persistence = new HashSet<MessageData>();
+        private class MessageDataComparer : IEqualityComparer<MessageData>
+        {
+            public bool Equals(MessageData x, MessageData y)
+            {
+                return x.Id == y.Id;
+            }
+
+            public int GetHashCode(MessageData obj)
+            {
+                return obj.Id.GetHashCode();
+            }
+        }
+
+        readonly ISet<MessageData> persistence = new HashSet<MessageData>(new MessageDataComparer());
     }
 }

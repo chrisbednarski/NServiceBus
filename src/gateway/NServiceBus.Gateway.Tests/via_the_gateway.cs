@@ -72,7 +72,7 @@
                                                                                  DataBus = databusForSiteA
                                                                              });
 
-            builder.Stub(x => x.Build<IReceiveMessagesFromSites>()).Return(new IdempotentChannelReceiver(channelFactory, new InMemoryDeduplication())
+            builder.Stub(x => x.Build<IReceiveMessagesFromSites>()).Return(new IdempotentChannelReceiver(channelFactory, new InMemoryDeduplication(), new DataBusHeaderAssembler())
             {
                 DataBus = databusForSiteB
             });

@@ -53,6 +53,7 @@ namespace NServiceBus
         {
             config.Configurer.ConfigureComponent<InMemoryPersistence>(DependencyLifecycle.SingleInstance);
             config.Configurer.ConfigureComponent<InMemoryDeduplication>(DependencyLifecycle.SingleInstance);
+            config.Configurer.ConfigureComponent<DataBusHeaderAssembler>(DependencyLifecycle.InstancePerCall);
             return config;
         }
 

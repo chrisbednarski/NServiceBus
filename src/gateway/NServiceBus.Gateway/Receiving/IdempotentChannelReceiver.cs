@@ -18,10 +18,11 @@
 
     public class IdempotentChannelReceiver : IReceiveMessagesFromSites
     {
-        public IdempotentChannelReceiver(IChannelFactory channelFactory, IDeduplicateMessages deduplicator)
+        public IdempotentChannelReceiver(IChannelFactory channelFactory, IDeduplicateMessages deduplicator, IReassembleGatewayHeaders headerManager)
         {
             this.channelFactory = channelFactory;
             this.deduplicator = deduplicator;
+            this.headerManager = headerManager;
         }
 
         public event EventHandler<MessageReceivedOnChannelArgs> MessageReceived;
@@ -97,13 +98,6 @@
 
                 CheckHashOfGatewayStream(stream, callInfo.Headers[HttpHeaders.ContentMd5Key]);
 
-                IDictionary<string, string> databusHeaders;
-                if (!deduplicator.DeduplicateMessage(callInfo.ClientId, DateTime.UtcNow, out databusHeaders))
-                {
-                    Logger.InfoFormat("Message with id: {0} is already acked, dropping the request", callInfo.ClientId);
-                    return;
-                }
-
                 var msg = new TransportMessage
                 {
                     Body = new byte[stream.Length],
@@ -113,12 +107,14 @@
                 };
 
                 stream.Read(msg.Body, 0, msg.Body.Length);
-                databusHeaders.ToList().ForEach(kv => callInfo.Headers[kv.Key] = kv.Value);
 
                 if (callInfo.Headers.ContainsKey(GatewayHeaders.IsGatewayMessage))
-                    HeaderMapper.Map(callInfo.Headers, msg);
+                    HeaderMapper.Map(headerManager.Reassemble(callInfo.ClientId, callInfo.Headers), msg);
 
-                MessageReceived(this, new MessageReceivedOnChannelArgs { Message = msg });
+                if (deduplicator.DeduplicateMessage(callInfo.ClientId, DateTime.UtcNow))
+                    MessageReceived(this, new MessageReceivedOnChannelArgs { Message = msg });
+                else
+                    Logger.InfoFormat("Message with id: {0} is already on the bus, dropping the request", callInfo.ClientId);
             }
         }
 
@@ -136,7 +132,7 @@
                 CheckHashOfGatewayStream(databusStream, callInfo.Headers[HttpHeaders.ContentMd5Key]);
 
             var specificDataBusHeaderToUpdate = callInfo.Headers[GatewayHeaders.DatabusKey];
-            deduplicator.InsertDataBusProperty(callInfo.ClientId, specificDataBusHeaderToUpdate, newDatabusKey);
+            headerManager.InsertHeader(callInfo.ClientId, specificDataBusHeaderToUpdate, newDatabusKey);
         }
 
         void CheckHashOfGatewayStream(Stream input, string md5Hash)
@@ -157,6 +153,7 @@
         IChannelReceiver channelReceiver;
         readonly IChannelFactory channelFactory;
         readonly IDeduplicateMessages deduplicator;
+        readonly IReassembleGatewayHeaders headerManager;
 
         static readonly ILog Logger = LogManager.GetLogger("NServiceBus.Gateway");
 
