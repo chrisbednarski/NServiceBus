@@ -17,6 +17,7 @@
     using Sending;
     using Unicast.Queuing;
     using Unicast.Transport;
+    using NServiceBus.Gateway.Deduplication;
 
     public class via_the_gateway
     {
@@ -71,7 +72,7 @@
                                                                                  DataBus = databusForSiteA
                                                                              });
 
-            builder.Stub(x => x.Build<IReceiveMessagesFromSites>()).Return(new IdempotentChannelReceiver(channelFactory, new InMemoryPersistence())
+            builder.Stub(x => x.Build<IReceiveMessagesFromSites>()).Return(new IdempotentChannelReceiver(channelFactory, new InMemoryDeduplication())
             {
                 DataBus = databusForSiteB
             });

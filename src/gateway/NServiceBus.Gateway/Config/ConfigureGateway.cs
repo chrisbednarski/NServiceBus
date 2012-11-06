@@ -13,6 +13,7 @@ namespace NServiceBus
     using Gateway.Routing.Sites;
     using Gateway.Sending;
     using Raven.Client;
+    using Gateway.Deduplication;
 
     public static class ConfigureGateway
     {
@@ -51,6 +52,7 @@ namespace NServiceBus
         public static Configure UseInMemoryGatewayPersister(this Configure config)
         {
             config.Configurer.ConfigureComponent<InMemoryPersistence>(DependencyLifecycle.SingleInstance);
+            config.Configurer.ConfigureComponent<InMemoryDeduplication>(DependencyLifecycle.SingleInstance);
             return config;
         }
 

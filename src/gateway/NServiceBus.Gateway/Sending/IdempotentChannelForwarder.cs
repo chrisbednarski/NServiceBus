@@ -30,12 +30,12 @@
 
             var channelSender = channelFactory.GetSender(targetSite.Channel.Type);
 
-            using (var messagePayload = new MemoryStream(message.Body))
-                Transmit(channelSender, targetSite, CallType.Submit, headers, messagePayload);
-
+            //databus properties have to be available at the receiver site
+            //before the MSMQ part of the message is forwarded on the bus
             TransmittDataBusProperties(channelSender, targetSite, headers);
 
-            Transmit(channelSender, targetSite, CallType.Ack, headers, new MemoryStream());
+            using (var messagePayload = new MemoryStream(message.Body))
+                Transmit(channelSender, targetSite, CallType.Submit, headers, messagePayload);
         }
 
         private void Transmit(IChannelSender channelSender, Site targetSite, CallType callType,
