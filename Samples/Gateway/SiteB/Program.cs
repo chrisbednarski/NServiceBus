@@ -51,7 +51,8 @@ namespace SiteB
         public void Handle(PriceUpdated message)
         {
             Console.WriteLine("Price update received");
-            Console.WriteLine("DataBusProperty: " + message.SomeLargeString.Value);
+            if(message.SomeLargeString != null)
+                Console.WriteLine("DataBusProperty: " + message.SomeLargeString.Value);
         }
     }
 
