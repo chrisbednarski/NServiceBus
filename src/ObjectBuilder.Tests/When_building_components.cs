@@ -18,6 +18,26 @@ namespace ObjectBuilder.Tests
         }
 
         [Test]
+        public void Singleton_components_from_child_builders_should_yield_the_same_instance()
+        {
+            ForAllBuilders(main =>
+            {
+                object instance1;
+                using (var builder = main.BuildChildContainer())
+                {
+	                instance1 = builder.Build(typeof(SingletonComponent));
+                }
+
+                object instance2;
+                using (var builder = main.BuildChildContainer())
+                {
+	                instance2 = builder.Build(typeof(SingletonComponent));
+                }
+                Assert.AreEqual(instance1, instance2);
+            });
+        }
+
+        [Test]
         public void Singlecall_components_should_yield_unique_instances()
         {
             ForAllBuilders(builder =>
@@ -52,6 +72,26 @@ namespace ObjectBuilder.Tests
         {
             ForAllBuilders(builder =>
                Assert.AreEqual(builder.Build(typeof(SingletonLambdaComponent)), builder.Build(typeof(SingletonLambdaComponent))));
+        }
+
+        [Test]
+        public void Lambda_singleton_components_from_child_builders_should_yield_the_same_instance()
+        {
+            ForAllBuilders(main =>
+            {
+                object instance1;
+                using (var builder = main.BuildChildContainer())
+                {
+                    instance1 = builder.Build(typeof(SingletonLambdaComponent));
+                }
+
+                object instance2;
+                using (var builder = main.BuildChildContainer())
+                {
+                    instance2 = builder.Build(typeof(SingletonLambdaComponent));
+                }
+                Assert.AreEqual(instance1, instance2);
+            });
         }
 
         [Test]
